@@ -15,6 +15,10 @@ public partial class Srs2Context : DbContext
     {
     }
 
+    public virtual DbSet<Good> Goods { get; set; }
+
+    public virtual DbSet<Order> Orders { get; set; }
+
     public virtual DbSet<User> Users { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -23,13 +27,49 @@ public partial class Srs2Context : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<Good>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.ToTable("goods");
+
+            entity.Property(e => e.Discription)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("discription");
+            entity.Property(e => e.Id)
+                .ValueGeneratedOnAdd()
+                .HasColumnName("id");
+            entity.Property(e => e.InStock).HasColumnName("in_stock");
+            entity.Property(e => e.Name)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("name");
+        });
+
+        modelBuilder.Entity<Order>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.ToTable("orders");
+            entity.Property(e => e.UserId).HasColumnName("user_id");
+            entity.Property(e => e.GoodsId).HasColumnName("goods_id");
+
+            entity.HasOne(o => o.User)
+                .WithMany(u => u.Orders)
+                .HasForeignKey(o => o.UserId)
+                .HasPrincipalKey(u => u.IdUser);
+
+            entity.HasOne(o => o.Good)
+                .WithMany(g => g.Orders)
+                .HasForeignKey(o => o.GoodsId);
+        });
+
         modelBuilder.Entity<User>(entity =>
         {
-            entity.HasNoKey();
+            entity.HasKey(e => e.IdUser);
+            entity.ToTable("users");
 
             entity.Property(e => e.IdUser)
-                .HasMaxLength(10)
-                .IsFixedLength()
+                .ValueGeneratedOnAdd()
                 .HasColumnName("id_user");
             entity.Property(e => e.Login)
                 .HasMaxLength(50)
@@ -38,6 +78,7 @@ public partial class Srs2Context : DbContext
                 .HasMaxLength(10)
                 .IsFixedLength()
                 .HasColumnName("password");
+            entity.Property(e => e.Role).HasColumnName("role");
         });
 
         OnModelCreatingPartial(modelBuilder);

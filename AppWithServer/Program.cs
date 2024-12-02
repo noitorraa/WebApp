@@ -1,12 +1,21 @@
 using AppWithServer.Model;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Http;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30);  // Устанавливаем время жизни сессии
+    options.Cookie.HttpOnly = true; // Устанавливаем флаг HttpOnly для безопасности
+    options.Cookie.IsEssential = true; // Чтобы сессия была доступна даже без согласия на cookies
+});
 // Add services to the container.
 builder.Services.AddRazorPages();
 
 builder.Services.AddDbContext<Srs2Context>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
 
@@ -22,7 +31,7 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
-
+app.UseSession();
 app.UseAuthorization();
 
 app.MapRazorPages();

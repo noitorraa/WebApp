@@ -32,12 +32,23 @@ namespace AppWithServer.Pages
 
             if (user != null)
             {
-                return RedirectToPage("/HomePage");
+                if (user.Role == true)
+                {
+                    Console.WriteLine($"UserId из TempData: {TempData["UserId"]}");
+                    HttpContext.Session.SetInt32("UserId", user.IdUser);
+                    return RedirectToPage("/HomePage");  // Переходим на главную страницу
+                }
+                else
+                {
+                    HttpContext.Session.SetInt32("UserId", user.IdUser);
+                    return RedirectToPage("/ModeratorPage");  // Переходим на страницу модератора
+                }
+                
             }
             else
             {
                 ModelState.AddModelError(string.Empty, "Неправильный логин или пароль.");
-                return Page(); 
+                return Page();
             }
         }
     }
